@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -63,6 +64,10 @@ struct Creature {
       _dir = dir;
       _pc = 0;
       _tc = 0;
+    }
+    void infection(Species* spc) {
+      _spc = *spc;
+      _pc = 0;
     }
 };
 
@@ -145,27 +150,106 @@ struct Grid {
       return false;
     }
 
-    void moveCreature(Creature& crt) {
+    bool ifRandom() {
+      int jmp = rand();
+      if(jmp % 2 == 0)
+        return false;
+      return true;
+    }
+    void infect(int x, int y, int dir, Species* spc) {
+      Creature* crt;
+      int x1 = x;
+      int y1 = y;
+      if(dir == 0)
+        --y1;
+      if(dir == 1)
+        ++x1;
+      if(dir == 2)
+        ++y1;
+      if(dir == 3)
+        --x1;
+      crt = findCreature(x1, y1);
+      (*crt).infection( spc);
+    }
+    void hop(int x, int y, int dir, Creature* crt) {
+      int x1 = x;
+      int y1 = y;
+      Creature& crt1 = *crt;
+      if(dir == 0 && y1 > 0)
+        --y1;
+      if(dir == 1 && x1 < (_c - 1))
+        ++x1;
+      if(dir == 2 && y1 < (_r - 1))
+        ++y1;
+      if(dir == 3 && x1 > 0)
+        --x1;
+      crt1._x = x1;
+      crt1._y = y1;
+    }
+
+    void moveCreature(int x, int y, Creature& crt) {
       if(crt._tc == _twc) {
+        int col = x;
+        int row = y;
         int tmpPC = crt._pc;
         vector<int> tmpInstPair = crt._spc._prog[tmpPC];
         int totInst = crt._spc._totInst;
         int tmpdir = crt._dir;
         int tmpInst = tmpInstPair[0];
         int tmpJPC = tmpInstPair[1];
-        switch(tmpInst) {
-          case 0:   //hop
-            
-          case 1:   //turn left
+        bool jump = false;
+
+        //CONTROL FLOW INSTRUCTIONS
+        while(tmpInst >= 4 ) {
+          switch(tmpInst) {
+            case 4:   //ifEmpty N
+              if(ifEmpty(col, row, tmpdir))
+                jump = true; 
+            case 5:
+              if(ifWall(col, row, tmpdir))
+                jump = true; 
+            case 6:
+              if(ifRandom())
+                jump = true; 
+            case 7:
+              if(ifEnemy(col, row, tmpdir, crt._spc._rep))
+                jump = true;
+            case 8:
+              jump = true;
+          }
+
+          if(jump == true)
+            tmpPC = tmpJPC;
+          else
+            ++tmpPC;
+          tmpPC = tmpPC % totInst;
+          tmpInstPair = crt._spc._prog[tmpPC];
+          tmpInst = tmpInstPair [0];
+          tmpJPC = tmpInstPair [1];
+          jump = false;
+        }
+
+        //ACTION INSTRUCTIONS
+        if(tmpInst < 4  && tmpInst >= 0) {
+          if(tmpInst == 0) {    //hop
+            hop(col, row, tmpdir, &crt);
+            ++tmpPC;
+          }
+          if(tmpInst ==  1) {   //turn left
             tmpdir = (++tmpdir) % 4;
             ++tmpPC;
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-          case 6:
-          case 7:
-          case 8:
+          }
+          if(tmpInst == 2) {   //turn right
+            tmpdir = (--tmpdir) % 4;
+            ++tmpPC;
+          }
+          if(tmpInst == 3) {   //infect
+            infect(col, row, tmpdir, &(crt._spc));
+            ++tmpPC;
+          }
+          tmpPC = tmpPC % totInst;
+          crt._pc = tmpPC;
+          crt._tc += 1;
         }
       }
     }
@@ -176,12 +260,10 @@ struct Grid {
         for(int j = 0; j < _c; ++j) {
           if(_grid[i][j] != '.' ) {
             crt = findCreature(i, j);
-            moveCreature(*crt);
+            moveCreature(j, i, *crt);
           }
-
         }
       }
-
     }
 
 
