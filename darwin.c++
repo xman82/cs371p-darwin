@@ -76,7 +76,7 @@ struct Grid {
     int _c;                   //columns/width
     int _r;                   //rows/height
     int _twc;                 //total (completed) turns counter
-    vector<Creature*> _crts; //list of all creatures on world
+    vector<Creature*> _crts;  //list of all creatures on world
 
   public:
     vector< vector<char> > _grid;
@@ -84,6 +84,7 @@ struct Grid {
     Grid(int c, int r) {
       _c = c;
       _r = r;
+      _twc = 0;
       for(int i=0; i<_r; ++i){
         vector<char>row(_c);
         fill(row.begin(), row.end(), '.');
@@ -91,27 +92,19 @@ struct Grid {
       }
     }
 
-    void print() {
-      for(int i = 0; i < _r; ++i) {
-        for(int j = 0; j < _c; ++j)
-          cout << _grid[i][j];
-        cout << endl;
-      }
-      cout << endl;
+    void addCreature(Creature& crt, int x, int y) {
+      _grid[y][x]=(crt._spc)._rep;
+      crt._x = x;
+      crt._y = y;
+      _crts.push_back(&crt);
     }
+
     Creature* findCreature(int x, int y) {
       for(int i = 0; i < _crts.size(); ++i) {
         if( (_crts[i]->_x) == x && (_crts[i]->_y) == y )
           return _crts[i];
       }
       return NULL;
-    }
-
-    void addCreature(Creature& crt, int x, int y) {
-      _grid[y][x]=(crt._spc)._rep;
-      crt._x = x;
-      crt._y = y;
-      _crts.push_back(&crt);
     }
 
     bool ifWall(int x, int y, int dir) {
@@ -202,19 +195,19 @@ struct Grid {
         //CONTROL FLOW INSTRUCTIONS
         while(tmpInst >= 4 ) {
           switch(tmpInst) {
-            case 4:   //ifEmpty N
+            case 4:   //if_empty N
               if(ifEmpty(col, row, tmpdir))
                 jump = true; 
-            case 5:
+            case 5:   //if_wall N
               if(ifWall(col, row, tmpdir))
                 jump = true; 
-            case 6:
+            case 6:   //if_random N
               if(ifRandom())
                 jump = true; 
-            case 7:
+            case 7:   //if_enemy N
               if(ifEnemy(col, row, tmpdir, crt._spc._rep))
                 jump = true;
-            case 8:
+            case 8:   //go N
               jump = true;
           }
 
@@ -235,19 +228,20 @@ struct Grid {
             hop(col, row, tmpdir, &crt);
             ++tmpPC;
           }
-          if(tmpInst ==  1) {   //turn left
+          if(tmpInst ==  1) {   //left
             tmpdir = (++tmpdir) % 4;
             ++tmpPC;
           }
-          if(tmpInst == 2) {   //turn right
+          if(tmpInst == 2) {    //right
             tmpdir = (--tmpdir) % 4;
             ++tmpPC;
           }
-          if(tmpInst == 3) {   //infect
+          if(tmpInst == 3) {    //infect
             infect(col, row, tmpdir, &(crt._spc));
             ++tmpPC;
           }
           tmpPC = tmpPC % totInst;
+          crt._dir = tmpdir;
           crt._pc = tmpPC;
           crt._tc += 1;
         }
@@ -264,9 +258,17 @@ struct Grid {
           }
         }
       }
+      ++_twc;
     }
 
-
+    void print() {
+      for(int i = 0; i < _r; ++i) {
+        for(int j = 0; j < _c; ++j)
+          cout << _grid[i][j];
+        cout << endl;
+      }
+      cout << endl;
+    }
 };
 
 int main () {
