@@ -17,8 +17,8 @@ struct Species {
       _rep = ' ';
       _totInst = 0;
     }
-    Species(char* name) {
-      _rep=*name;
+    Species(char rep) {
+      _rep=rep;
       _totInst = 0;
     }
 
@@ -40,13 +40,18 @@ struct Creature {
       _dir = 1;
       _pc = 0;
     }
-    Creature(Species* spc, int dir) {
-      _spc = *spc;
+    Creature(Species& spc, int dir) {
+      _spc = spc;
       _dir = dir;
       _pc = 0;
       _tc = 0;
     }
-    void infection(Species *);
+    bool match(int, int);
+    void hop();
+    void left();
+    void right();
+    void infection(Species&);
+    void turn(int);
 };
 
 struct Grid {
@@ -54,7 +59,7 @@ struct Grid {
     int _c;                   //columns/width
     int _r;                   //rows/height
     int _twc;                 //total (completed) turns counter
-    vector<Creature*> _crts;  //list of all creatures on world
+    vector<Creature> _crts;  //list of all creatures on world
 
   public:
     vector< vector<char> > _grid;
@@ -69,17 +74,17 @@ struct Grid {
         _grid.push_back(row);
       }
     }
-    void addCreature(Creature&, int, int);
-    Creature* findCreature(int, int);
+    void addCreature(Creature, int, int);
+    int findCreature(int, int);
 
     bool ifWall(int, int, int);
     bool ifEnemy(int, int, int, char);
     bool ifEmpty(int, int, int);
     bool ifRandom();
-    void infect(int, int, int, Species*);
-    void hop(int, int, int, Creature*);
+    void infect(int, int, int, Species&);
+    void hop(int, int, int, int);
 
-    void moveCreature(int, int, Creature&);
+    void moveCreature(int, int, int);
     void turn();
     void print();
 };

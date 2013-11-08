@@ -48,12 +48,62 @@ vector<int> Species::progInstruction(int& curr_line) {
 
 /*
 *
+* given x, y coordinates, checks to see if the creature is a match
+* @returns true when creature _x _y match x y
+*/
+bool Creature::match(int x, int y) {
+  if(_x == x && _y == y )
+    return true;
+  else
+   return false;
+}
+
+/*
+*
+* moves creature one space in direction faced
+*/
+void Creature::hop() {
+  if(_dir == 0)
+    --_x;
+  if(_dir == 1)
+    --_y;
+  if(_dir == 2)
+    ++_x;
+  if(_dir == 3)
+    ++_y;
+}
+
+/*
+*
+* alters _dir to represent the creature turning left
+* (counterclockwise)
+*/
+void Creature::left() {
+  _dir = (_dir - 1) % 4;
+}
+
+/*
+*
+* alters _dir to represent the creature turning right
+* (clockwise)
+*/
+void Creature::right() {
+  _dir = (_dir + 1) % 4;
+}
+
+/*
+*
 * changes the Creature's species 
 * @param spc is the new species
 */
-void Creature::infection(Species* spc) {
-  _spc = *spc;
+void Creature::infection(Species& spc) {
+  _spc = spc;
   _pc = 0;
+}
+
+void Creature::turn(int tmpPC) {
+  _pc = tmpPC;
+  ++_tc;
 }
 
 /*
@@ -64,11 +114,11 @@ void Creature::infection(Species* spc) {
 * @param x is the desired column
 * @param y is the desired row
 */
-void Grid::addCreature(Creature& crt, int x, int y) {
+void Grid::addCreature(Creature crt, int x, int y) {
   _grid[y][x]=(crt._spc)._rep;
   crt._x = x;
   crt._y = y;
-  _crts.push_back(&crt);
+  _crts.push_back(crt);
 }
 
 /*
@@ -76,14 +126,15 @@ void Grid::addCreature(Creature& crt, int x, int y) {
 * finds a Creature in the grid's list based on coordinates
 * @param x is the desired column
 * @param y is the desired row
-* @returns the Creature at the desired coordinates
+* @returns the index of Creature
 */
-Creature* Grid::findCreature(int x, int y) {
+int Grid::findCreature(int x, int y) {
   for(int i = 0; i < _crts.size(); ++i) {
-    if( (_crts[i]->_x) == x && (_crts[i]->_y) == y )
-      return _crts[i];
+    if( _crts[i].match(x, y) ) {
+      return i;
+    }
   }
-  return NULL;
+  return (-1);
 }
 
 /*
@@ -95,13 +146,13 @@ Creature* Grid::findCreature(int x, int y) {
 * @returns true if creature if facing wall
 */
 bool Grid::ifWall(int x, int y, int dir) {
-  if(dir == 0 && y == 0)
+  if(dir == 0 && x == 0)		//facing west
     return true;
-  if(dir == 1 && x == (_c - 1) )
+  if(dir == 1 && y == 0)		//facing north
     return true;
-  if(dir == 2 && y == (_r - 1) )
+  if(dir == 2 && x == (_c - 1) )	//facing east
     return true;
-  if(dir == 3 && x == 0)
+  if(dir == 3 && y == (_r - 1) )	//facing south
     return true;
   return false;
 }
@@ -115,13 +166,13 @@ bool Grid::ifWall(int x, int y, int dir) {
 * @returns true if creature if facing enemy
 */
 bool Grid::ifEnemy(int x, int y, int dir, char rep) {
-  if(dir == 0 && y != 0 && _grid[y-1][x] != rep && _grid[y-1][x] != '.')
+  if(dir == 0 && x != 0 && _grid[y][x-1] != rep && _grid[y][x-1] != '.')
     return true;
-  if(dir == 1 && x != (_c - 1) && _grid[y][x+1] != rep && _grid[y][x+1] != '.')
+  if(dir == 1 && y != 0 && _grid[y-1][x] != rep && _grid[y-1][x] != '.')
     return true;
-  if(dir == 2 && y != (_r - 1) && _grid[y+1][x] != rep && _grid[y+1][x] != '.')
+  if(dir == 2 && x != (_c - 1) && _grid[y][x+1] != rep && _grid[y][x+1] != '.')
     return true;
-  if(dir == 3 && x != 0 && _grid[y][x-1] != rep && _grid[y][x-1] != '.')
+  if(dir == 3 && y != (_r - 1) && _grid[y+1][x] != rep && _grid[y+1][x] != '.')
     return true;
   return false;
 }
@@ -135,13 +186,13 @@ bool Grid::ifEnemy(int x, int y, int dir, char rep) {
 * @returns true if creature if facing empty space
 */
 bool Grid::ifEmpty(int x, int y, int dir) {
-  if(dir == 0 && y != 0 && _grid[y-1][x] == '.')
+  if(dir == 0 && x > 0 && _grid[y][x-1] == '.')
     return true;
-  if(dir == 1 && x != (_c - 1) && _grid[y][x+1] == '.')
+  if(dir == 1 && y > 0 && _grid[y-1][x] == '.')
     return true;
-  if(dir == 2 && y != (_r - 1) && _grid[y+1][x] == '.')
+  if(dir == 2 && x < (_c - 1) && _grid[y][x+1] == '.')
     return true;
-  if(dir == 3 && x != 0 && _grid[y][x-1] == '.')
+  if(dir == 3 && y < (_r - 1) && _grid[y+1][x] == '.')
     return true;
   return false;
 }
@@ -164,20 +215,22 @@ bool Grid::ifRandom() {
 * @param dir is the creature's direction
 * @param spc is the species the enemy will be converted to
 */
-void Grid::infect(int x, int y, int dir, Species* spc) {
-  Creature* crt;
+void Grid::infect(int x, int y, int dir, Species& spc) {
   int x1 = x;
   int y1 = y;
   if(dir == 0)
-    --y1;
-  if(dir == 1)
-    ++x1;
-  if(dir == 2)
-    ++y1;
-  if(dir == 3)
     --x1;
-  crt = findCreature(x1, y1);
-  (*crt).infection( spc);
+  if(dir == 1)
+    --y1;
+  if(dir == 2)
+    ++x1;
+  if(dir == 3)
+    ++y1;
+  int crtInd = findCreature(x1, y1);
+  if(crtInd != (-1)) {
+    _crts[crtInd].infection(spc);
+    _grid[y1][x1]=_crts[crtInd]._spc._rep;
+  }
 }
 
 /*
@@ -188,20 +241,31 @@ void Grid::infect(int x, int y, int dir, Species* spc) {
 * @param dir is the creature's direction
 * @param crt is the creature
 */
-void Grid::hop(int x, int y, int dir, Creature* crt) {
+void Grid::hop(int x, int y, int dir, int crtInd) {
   int x1 = x;
   int y1 = y;
-  Creature& crt1 = *crt;
-  if(dir == 0 && y1 > 0)
-    --y1;
-  if(dir == 1 && x1 < (_c - 1))
-    ++x1;
-  if(dir == 2 && y1 < (_r - 1))
-    ++y1;
-  if(dir == 3 && x1 > 0)
+  bool canHop = false;
+  if(dir == 0 && x1 > 0) {
+    canHop = true;
     --x1;
-  crt1._x = x1;
-  crt1._y = y1;
+  }
+  if(dir == 1 && y1 > 0) {
+    canHop = true;
+    --y1;
+  }
+  if(dir == 2 && x1 < (_c - 1)){
+    canHop = true;
+    ++x1;
+  }
+  if(dir == 3 && y1 < (_r - 1)){
+    canHop = true;
+    ++y1;
+  }
+  if(canHop && ifEmpty(x, y, dir)) {
+    _crts[crtInd].hop();
+    _grid[y][x] = '.';
+    _grid[y1][x1] = _crts[crtInd]._spc._rep;
+  }
 }
 
 /*
@@ -211,7 +275,8 @@ void Grid::hop(int x, int y, int dir, Creature* crt) {
 * @param y is the desired row
 * @param crt is the Creature awaiting instructions
 */
-void Grid::moveCreature(int x, int y, Creature& crt) {
+void Grid::moveCreature(int x, int y, int crtInd) {
+  Creature& crt = _crts[crtInd];
   if(crt._tc == _twc) {
     int col = x;
     int row = y;
@@ -241,11 +306,11 @@ void Grid::moveCreature(int x, int y, Creature& crt) {
         case 8:   //go N
           jump = true;
       }
-
       if(jump == true)
         tmpPC = tmpJPC;
       else
         ++tmpPC;
+      
       tmpPC = tmpPC % totInst;
       tmpInstPair = crt._spc._prog[tmpPC];
       tmpInst = tmpInstPair [0];
@@ -256,25 +321,20 @@ void Grid::moveCreature(int x, int y, Creature& crt) {
     //ACTION INSTRUCTIONS
     if(tmpInst < 4  && tmpInst >= 0) {
       if(tmpInst == 0) {    //hop
-        hop(col, row, tmpdir, &crt);
-        ++tmpPC;
+        hop(col, row, tmpdir, crtInd);
       }
       if(tmpInst ==  1) {   //left
-        tmpdir = (++tmpdir) % 4;
-        ++tmpPC;
+        _crts[crtInd].left();
       }
       if(tmpInst == 2) {    //right
-        tmpdir = (--tmpdir) % 4;
-        ++tmpPC;
+        _crts[crtInd].right();
       }
       if(tmpInst == 3) {    //infect
-        infect(col, row, tmpdir, &(crt._spc));
-        ++tmpPC;
+        infect(col, row, tmpdir, crt._spc);
       }
+      ++tmpPC;
       tmpPC = tmpPC % totInst;
-      crt._dir = tmpdir;
-      crt._pc = tmpPC;
-      crt._tc += 1;
+      _crts[crtInd].turn(tmpPC);
     }
   }
 }
@@ -284,12 +344,13 @@ void Grid::moveCreature(int x, int y, Creature& crt) {
 * executes a turn for the entire grid/world
 */
 void Grid::turn(){
-  Creature* crt;
+  int crtInd;
   for(int i = 0; i < _r; ++i) {
     for(int j = 0; j < _c; ++j) {
       if(_grid[i][j] != '.' ) {
-        crt = findCreature(i, j);
-        moveCreature(j, i, *crt);
+        crtInd = findCreature(j, i);
+        if(crtInd != (-1))
+          moveCreature(j, i, crtInd);
       }
     }
   }
@@ -308,7 +369,3 @@ void Grid::print() {
   cout << endl;
 }
 
-
-int main () {
-  return 0;
-}
