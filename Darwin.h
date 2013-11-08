@@ -7,6 +7,7 @@
 
 using namespace std;
 
+
 struct Species {
   public:
     char _rep;                    //one character representation for species

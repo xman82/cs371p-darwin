@@ -115,10 +115,14 @@ void Creature::turn(int tmpPC) {
 * @param y is the desired row
 */
 void Grid::addCreature(Creature crt, int x, int y) {
-  _grid[y][x]=(crt._spc)._rep;
-  crt._x = x;
-  crt._y = y;
-  _crts.push_back(crt);
+  if((x < _c && x >= 0)  && (y < _r && y >= 0)) {
+    if(_grid[y][x]=='.') {
+      _grid[y][x]=(crt._spc)._rep;
+      crt._x = x;
+      crt._y = y;
+      _crts.push_back(crt);
+    }
+  }
 }
 
 /*
@@ -166,13 +170,13 @@ bool Grid::ifWall(int x, int y, int dir) {
 * @returns true if creature if facing enemy
 */
 bool Grid::ifEnemy(int x, int y, int dir, char rep) {
-  if(dir == 0 && x != 0 && _grid[y][x-1] != rep && _grid[y][x-1] != '.')
+  if(dir == 0 && x > 0 && _grid[y][x-1] != rep && _grid[y][x-1] != '.')
     return true;
-  if(dir == 1 && y != 0 && _grid[y-1][x] != rep && _grid[y-1][x] != '.')
+  if(dir == 1 && y > 0 && _grid[y-1][x] != rep && _grid[y-1][x] != '.')
     return true;
-  if(dir == 2 && x != (_c - 1) && _grid[y][x+1] != rep && _grid[y][x+1] != '.')
+  if(dir == 2 && x < (_c - 1) && _grid[y][x+1] != rep && _grid[y][x+1] != '.')
     return true;
-  if(dir == 3 && y != (_r - 1) && _grid[y+1][x] != rep && _grid[y+1][x] != '.')
+  if(dir == 3 && y < (_r - 1) && _grid[y+1][x] != rep && _grid[y+1][x] != '.')
     return true;
   return false;
 }
@@ -290,27 +294,30 @@ void Grid::moveCreature(int x, int y, int crtInd) {
 
     //CONTROL FLOW INSTRUCTIONS
     while(tmpInst >= 4 ) {
-      switch(tmpInst) {
-        case 4:   //if_empty N
-          if(ifEmpty(col, row, tmpdir))
-            jump = true; 
-        case 5:   //if_wall N
-          if(ifWall(col, row, tmpdir))
-            jump = true; 
-        case 6:   //if_random N
-          if(ifRandom())
-            jump = true; 
-        case 7:   //if_enemy N
-          if(ifEnemy(col, row, tmpdir, crt._spc._rep))
-            jump = true;
-        case 8:   //go N
+      if(tmpInst == 4) {
+        if(ifEmpty(col, row, tmpdir))
           jump = true;
       }
-      if(jump == true)
+      if(tmpInst == 5) {
+        if(ifWall(col, row, tmpdir))
+          jump = true;
+      }
+      if(tmpInst == 6) {
+        if(ifRandom())
+          jump = true;
+      }
+      if(tmpInst == 7) {
+        if(ifEnemy(col, row, tmpdir, crt._spc._rep))
+          jump = true;
+      }
+      if(tmpInst == 8) {
+        jump = true;
+      }
+
+      if(jump)
         tmpPC = tmpJPC;
       else
-        ++tmpPC;
-      
+        ++tmpPC;   
       tmpPC = tmpPC % totInst;
       tmpInstPair = crt._spc._prog[tmpPC];
       tmpInst = tmpInstPair [0];
