@@ -390,6 +390,246 @@ int main () {
         assert(false);}
     catch (const out_of_range&) {
         assert(false);}
+
+    // ----------
+    // darwin 8x8
+    // ----------
+
+    try {
+        cout << "*** Trap Central ( 8 x 8 ) ***" << endl;
+        /*
+        8x8 Darwin
+        rover,  facing east,  at (0, 0)
+        rover,  facing south, at (0, 7)
+        rover,  facing west,  at (7, 7)
+        rover,  facing north, at (7, 0)
+        trap,   facing north, at (3, 3)
+        trap,   facing east,  at (3, 4)
+        trap,   facing south, at (4, 4)
+        trap,   facing west,  at (4, 3)
+        Simulate 25 moves.
+        Print every grid.
+        */
+        Grid world = Grid(8,8);
+
+        Creature r1 = Creature(rover, 2);
+        world.addCreature(r1, 0, 0);
+
+        Creature r2 = Creature(rover, 3);
+        world.addCreature(r2, 7,0);
+
+        Creature r3 = Creature(rover, 0);
+        world.addCreature(r3, 7,7);
+
+        Creature r4 = Creature(rover, 1);
+        world.addCreature(r4, 0, 7);
+
+        Creature t1 = Creature(trap, 1);
+        world.addCreature(t1, 3, 3);
+
+        Creature t2 = Creature(trap, 2);
+        world.addCreature(t2, 4, 3);
+
+        Creature t3 = Creature(trap, 3);
+        world.addCreature(t3, 4, 4);
+
+        Creature t4 = Creature(trap, 0);
+        world.addCreature(t4, 3, 4);
+
+        world.print();
+          for(int i=0; i<25; ++i) {
+            world.turn();
+            world.print();
+          }
+        }
+    catch (const invalid_argument&) {
+        assert(false);}
+    catch (const out_of_range&) {
+        assert(false);}
+
+    // ----------
+    // darwin 16x16
+    // ----------
+
+    try {
+        cout << "*** Trap Apocalypse ( 16 x 16 ) ***" << endl;
+        /*
+        8x8 Darwin
+        rover,  facing east,  at (0, 0)
+        rover,  facing south, at (0, 15)
+        rover,  facing west,  at (15, 15)
+        rover,  facing north, at (15, 0)
+
+        trap,   facing north, at (6, 6)
+        trap,   facing north, at (6, 7)
+        trap,   facing north, at (6, 8)
+        trap,   facing east,  at (6, 9)
+        trap,   facing east,  at (7, 9)
+        trap,   facing east,  at (8, 9)
+        trap,   facing south, at (9, 9)
+        trap,   facing south, at (9, 8)
+        trap,   facing south, at (9, 7)
+        trap,   facing west,  at (9, 6)
+        trap,   facing west,  at (8, 6)
+        trap,   facing west,  at (7, 6)
+
+        hopper, facing south, at (0, 7)
+        hopper, facing west,  at (7, 15)
+        hopper, facing north, at (15, 7)
+        hopper, facing east,  at (7,0)
+        Simulate 50 moves.
+        Print every 5th grid.
+        */
+        Grid world = Grid(16,16);
+
+        Creature r1 = Creature(rover, 2);
+        world.addCreature(r1, 0, 0);
+
+        Creature r2 = Creature(rover, 3);
+        world.addCreature(r2, 15,0);
+
+        Creature r3 = Creature(rover, 0);
+        world.addCreature(r3, 15,15);
+
+        Creature r4 = Creature(rover, 1);
+        world.addCreature(r4, 0, 15);
+
+        Creature t1 = Creature(trap, 1);
+        world.addCreature(t1, 6, 6);
+        Creature t2 = Creature(trap, 1);
+        world.addCreature(t2, 7, 6);
+        Creature t3 = Creature(trap, 1);
+        world.addCreature(t3, 8, 6);
+
+        Creature t4 = Creature(trap, 2);
+        world.addCreature(t4, 9, 6);
+        Creature t5 = Creature(trap, 2);
+        world.addCreature(t5, 9, 7);
+        Creature t6 = Creature(trap, 2);
+        world.addCreature(t6, 9, 8);
+
+        Creature t7 = Creature(trap, 3);
+        world.addCreature(t7, 9, 9);
+        Creature t8 = Creature(trap, 3);
+        world.addCreature(t8, 8, 9);
+        Creature t9 = Creature(trap, 3);
+        world.addCreature(t9, 7, 9);
+
+        Creature t10 = Creature(trap, 0);
+        world.addCreature(t10, 6, 9);
+        Creature t11 = Creature(trap, 0);
+        world.addCreature(t11, 6, 8);
+        Creature t12 = Creature(trap, 0);
+        world.addCreature(t12, 6, 7);
+
+        Creature h1 = Creature(hopper, 3);
+        world.addCreature(h1, 7, 0);
+        Creature h2 = Creature(hopper, 0);
+        world.addCreature(h2, 15, 7);
+        Creature h3 = Creature(hopper, 1);
+        world.addCreature(h3, 7, 15);
+        Creature h4 = Creature(hopper, 2);
+        world.addCreature(h4, 0, 7);
+       
+        world.print();
+          for(int i=1; i<=50; ++i) {
+            world.turn();
+            if(i % 5 == 0)
+              world.print();
+          }
+        }
+    catch (const invalid_argument&) {
+        assert(false);}
+    catch (const out_of_range&) {
+        assert(false);}
+
+  // ------------
+  // darwin 2x2: abrame13
+  // ------------
+
+  try {
+    cout << "*** Darwin 2x2 ***" << endl;
+    srand(0);
+    /*
+                try to place 1000 creatures
+                there should only be 4 in the end
+                print the result
+                */
+
+                Grid world = Grid(2, 2);
+                int randN;
+                int row, col;
+                int dir;
+                int i;
+
+                // place traps
+                for (i = 0; i < 1000; i++) {
+                        randN = rand() % 4;
+                        row = randN / 2;
+                        col = randN % 2;
+                        dir = rand() % 4;
+                        world.addCreature(Creature(trap, dir), col, row);
+                }
+
+                // print the sim
+                world.print();
+
+  }
+        catch (const invalid_argument&) {
+          assert(false);}
+        catch (const out_of_range&) {
+                  assert(false);}
+
+    // ----------
+    // darwin 10x10: am43299
+    // ----------        
+        
+      try {
+        cout << "*** Darwin 10x10 ***" << endl;
+        Grid x = Grid(10, 10);
+        /*
+        10x10 Darwin
+        Food,   facing east,  at (0, 0)
+        Food,   facing east,  at (9, 9)
+        Food,   facing north, at (7, 7)
+        Hopper, facing north, at (1, 1)
+        Hopper, facing east,  at (3, 4)
+        Rover, facing south, at (4, 4)
+        Trap, facing west,  at (4, 3)
+        Simulate 50 moves.
+        Print first 5 then print every 5th grid.
+        */
+        
+        Creature foodC1 = Creature(food, 2);
+        Creature foodC2 = Creature(food, 2);
+        Creature foodC3 = Creature(food, 1);
+        Creature hopperC1 = Creature(hopper, 1);
+        Creature hopperC2 = Creature(hopper, 2);        
+        Creature roverC1 = Creature(rover, 3);
+        Creature trapC1 = Creature(trap, 1);
+        
+        x.addCreature(foodC1, 0, 0);
+        x.addCreature(foodC2, 9, 9);
+        x.addCreature(foodC2, 7, 7);
+        x.addCreature(hopperC1, 1, 1);
+        x.addCreature(hopperC2, 4, 3);
+        x.addCreature(roverC1, 4, 4);
+        x.addCreature(trapC1, 3, 4);
+        
+        x.print();
+        
+        for(int i = 1; i <= 50; i++){
+          x.turn();
+          if(i <= 5 || (i % 5 == 0)){
+            x.print();
+          } 
+        }
+      }
+    catch (const invalid_argument&) {
+        assert(false);}
+    catch (const out_of_range&) {
+        assert(false);}
+
     return 0;}
 
 

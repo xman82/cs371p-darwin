@@ -51,7 +51,7 @@ struct Creature {
     void hop();
     void left();
     void right();
-    void infection(Species&);
+    char infection(const Species&);
     void turn(int);
 };
 

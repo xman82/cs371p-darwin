@@ -95,10 +95,12 @@ void Creature::right() {
 *
 * changes the Creature's species 
 * @param spc is the new species
+* @returns new species representation
 */
-void Creature::infection(Species& spc) {
+char Creature::infection(const Species& spc) {
   _spc = spc;
   _pc = 0;
+  return _spc._rep;
 }
 
 void Creature::turn(int tmpPC) {
@@ -232,8 +234,7 @@ void Grid::infect(int x, int y, int dir, Species& spc) {
     ++y1;
   int crtInd = findCreature(x1, y1);
   if(crtInd != (-1)) {
-    _crts[crtInd].infection(spc);
-    _grid[y1][x1]=_crts[crtInd]._spc._rep;
+    _grid[y1][x1]=(_crts[crtInd].infection(spc));
   }
 }
 
@@ -307,7 +308,7 @@ void Grid::moveCreature(int x, int y, int crtInd) {
           jump = true;
       }
       if(tmpInst == 7) {
-        if(ifEnemy(col, row, tmpdir, crt._spc._rep))
+        if(ifEnemy(col, row, tmpdir, _crts[crtInd]._spc._rep))
           jump = true;
       }
       if(tmpInst == 8) {
@@ -337,7 +338,7 @@ void Grid::moveCreature(int x, int y, int crtInd) {
         _crts[crtInd].right();
       }
       if(tmpInst == 3) {    //infect
-        infect(col, row, tmpdir, crt._spc);
+        infect(col, row, tmpdir, _crts[crtInd]._spc);
       }
       ++tmpPC;
       tmpPC = tmpPC % totInst;
