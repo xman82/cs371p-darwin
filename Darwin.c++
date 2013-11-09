@@ -79,7 +79,10 @@ void Creature::hop() {
 * (counterclockwise)
 */
 void Creature::left() {
-  _dir = (_dir - 1) % 4;
+  if(_dir == 0)
+    _dir = 3;
+  else
+    --_dir;
 }
 
 /*
@@ -369,7 +372,16 @@ void Grid::turn(){
 * prints out the grid/world
 */
 void Grid::print() {
+  int k=0;
+  cout<<' ';
+  for(int i =0; i< _c; ++i){
+    k = i%10;
+    cout<<k;
+  }
+  cout<<endl;
   for(int i = 0; i < _r; ++i) {
+    k = i % 10;
+    cout<< k;
     for(int j = 0; j < _c; ++j)
       cout << _grid[i][j];
     cout << endl;
